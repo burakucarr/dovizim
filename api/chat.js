@@ -12,20 +12,37 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `Sen 'Dövizim' adlı bir finans uygulamasının yapay zeka asistanısın. Kullanıcıya finansal piyasalar, döviz, altın ve yatırım konularında kısa, profesyonel ve öz bir dille cevap ver. Asla çok uzun paragraflar yazma. Kullanıcının sorusu: "${message}"`
-                    }]
-                }]
-            })
-        });
+        let attempts = 0;
+        const maxAttempts = 3;
+        let response;
+        let data;
 
-        const data = await response.json();
-        res.status(200).json(data);
+        while (attempts < maxAttempts) {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Sen 'Dövizim' adlı bir finans uygulamasının yapay zeka asistanısın. Kullanıcıya finansal piyasalar, döviz, altın ve yatırım konularında kısa, profesyonel ve öz bir dille cevap ver. Asla çok uzun paragraflar yazma. Kullanıcının sorusu: "${message}"`
+                        }]
+                    }]
+                })
+            });
+
+            data = await response.json();
+
+            // Eğer kota hatası (429) alırsak ve hala deneme hakkımız varsa bekle ve tekrar dene
+            if (response.status === 429 && attempts < maxAttempts - 1) {
+                attempts++;
+                const waitTime = Math.pow(2, attempts) * 1000; // Üstel bekleme (2s, 4s...)
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                continue;
+            }
+            break;
+        }
+
+        res.status(response.status).json(data);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch from Gemini API' });
     }

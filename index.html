@@ -3885,7 +3885,11 @@
                 if (data.candidates && data.candidates[0].content.parts[0].text) {
                     aiText = data.candidates[0].content.parts[0].text;
                 } else if (data.error) {
-                    aiText = "Bağlantı hatası: " + (data.error.message || "Bilinmeyen hata");
+                    if (data.error.code === 429 || data.error.message.includes("quota")) {
+                        aiText = "Çok fazla istek gönderildi. Lütfen 30 saniye bekleyip tekrar deneyin.";
+                    } else {
+                        aiText = "Bağlantı hatası: " + (data.error.message || "Bilinmeyen hata");
+                    }
                 }
 
                 const typingEl = document.getElementById(typingId);
