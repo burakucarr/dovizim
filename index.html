@@ -2906,6 +2906,17 @@
                         <div><strong class="text-muted">Çalışma Saatleri:</strong><br>${dealer.hours}</div>
                         <div style="grid-column: 1 / -1;"><strong class="text-muted">Adres:</strong><br>${dealer.city} - ${dealer.address}</div>
                     </div>
+
+                    <div style="margin-top: 1.5rem; margin-bottom: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <h4 class="font-bold mb-2 flex items-center gap-2">
+                            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);stroke-width:2;fill:none;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                            Fiyat Trend Analizi
+                        </h4>
+                        <div style="height: 180px; width: 100%; position: relative;">
+                            <canvas id="listing-detail-chart"></canvas>
+                        </div>
+                    </div>
+
                     <div id="listing-map" style="height: 250px; background: var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 1rem;"></div>
                 </div>
 
@@ -2917,7 +2928,78 @@
 
             modal.classList.add('active');
 
-            if (dealer.lat && dealer.lng && window.google) {
+            setTimeout(() => {
+                const ctx = document.getElementById('listing-detail-chart');
+                if (ctx) {
+                    const basePrice = l.price;
+                    const labels = [];
+                    const data = [];
+                    let currentMock = basePrice * 0.95; 
+                    for(let i=30; i>=0; i--) {
+                        const d = new Date();
+                        d.setDate(d.getDate() - i);
+                        labels.push(d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
+                        currentMock += (Math.random() - 0.4) * (basePrice * 0.01); 
+                        data.push(currentMock);
+                    }
+                    data[30] = basePrice; 
+
+                    if (window.listingChartInst) {
+                        window.listingChartInst.destroy();
+                    }
+
+                    const isUp = data[30] >= data[29];
+                    const chartColor = isUp ? '#10b981' : '#ef4444'; 
+
+                    window.listingChartInst = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: l.currency + ' Fiyatı',
+                                data: data,
+                                borderColor: chartColor,
+                                backgroundColor: isUp ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0,
+                                pointHoverRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.parsed.y.toFixed(4) + ' ₺';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { display: false },
+                                y: {
+                                    display: false,
+                                    min: Math.min(...data) * 0.99,
+                                    max: Math.max(...data) * 1.01
+                                }
+                            },
+                            interaction: {
+                                mode: 'nearest',
+                                axis: 'x',
+                                intersect: false
+                            }
+                        }
+                    });
+                }
+
+                if (dealer.lat && dealer.lng && window.google) {
                 const map = new google.maps.Map(document.getElementById("listing-map"), {
                     zoom: 15,
                     center: { lat: dealer.lat, lng: dealer.lng },
@@ -2928,6 +3010,7 @@
                     title: dealer.name
                 });
             }
+            }, 100);
         }
 
         function closeModal() {
