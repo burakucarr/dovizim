@@ -2691,6 +2691,8 @@
             }
 
             const chartOptions = {
+                width: container.clientWidth || container.parentElement.clientWidth,
+                height: container.clientHeight || 300,
                 layout: {
                     textColor: getComputedStyle(document.body).getPropertyValue('--text-muted').trim() || '#64748b',
                     background: { type: 'solid', color: 'transparent' },
@@ -2710,11 +2712,10 @@
                 wickUpColor: '#10b981', wickDownColor: '#ef4444',
             });
 
-            // Generate mock candlestick data based on history
             let tvData = [];
             let now = new Date();
             now.setHours(0, 0, 0, 0);
-            let time = now.getTime() / 1000 - (hist.length * 86400); // 1 day intervals
+            let time = now.getTime() / 1000 - (hist.length * 86400); 
 
             for (let i = 0; i < hist.length; i++) {
                 let close = hist[i];
@@ -2725,6 +2726,13 @@
             }
             candlestickSeries.setData(tvData);
             tvChart.timeScale().fitContent();
+
+            // Make it responsive
+            new ResizeObserver(entries => {
+                if (entries.length === 0 || entries[0].target !== container) return;
+                const newRect = entries[0].contentRect;
+                tvChart.applyOptions({ height: newRect.height, width: newRect.width });
+            }).observe(container);
         }
 
         function setChartTimeframe(tf) {
