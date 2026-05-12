@@ -1765,7 +1765,7 @@
             editingListingId: null,
             crypto: {},
             portfolio: JSON.parse(localStorage.getItem('portfolio') || '[]'),
-            alerts: [],
+            alerts: JSON.parse(localStorage.getItem('alerts') || '[]'),
             newsFeed: [
                 { id: 'n1', time: `${getFullDateStr()} 14:30`, source: 'Reuters', title: 'FED faiz kararını sabit tuttu, piyasalar sakin.', impact: 'medium' },
                 { id: 'n2', time: `${getFullDateStr()} 12:15`, source: 'Bloomberg', title: 'Altın fiyatları Orta Doğu gerilimiyle yeni zirveyi test etti.', impact: 'high' },
@@ -2148,6 +2148,8 @@
                     changed = true;
                 }
             });
+
+            if (typeof checkAlarms === 'function') checkAlarms();
             
             const now = new Date();
             const lastUpdatedElem = document.getElementById('last-updated');
@@ -3037,6 +3039,104 @@
                 });
             }
             }, 100);
+        }
+
+        function setAlarm(code) {
+            const currentPrice = state.currencies[code] ? state.currencies[code].buy : (state.metals[code] ? state.metals[code].buy : 0);
+            const targetPrice = prompt(`${code} için hedef kur fiyatını girin (Mevcut: ${currentPrice.toFixed(4)})`, currentPrice.toFixed(4));
+            
+            if (targetPrice && !isNaN(targetPrice)) {
+                const target = parseFloat(targetPrice);
+                const isAbove = target > currentPrice;
+                
+                state.alarms.push({
+                    id: Date.now(),
+                    code: code,
+                    target: target,
+                    isAbove: isAbove,
+                    active: true
+                });
+                
+                localStorage.setItem('alarms', JSON.stringify(state.alarms));
+                showToast(`${code} için ${target.toFixed(4)} seviyesinde alarm kuruldu! 🔔`, 'success');
+            }
+        }
+
+        function checkAlarms() {
+            state.alarms.forEach(alarm => {
+                if (!alarm.active) return;
+                
+                const currentPrice = state.currencies[alarm.code] ? state.currencies[alarm.code].buy : (state.metals[alarm.code] ? state.metals[alarm.code].buy : 0);
+                if (currentPrice === 0) return;
+
+                let triggered = false;
+                if (alarm.isAbove && currentPrice >= alarm.target) triggered = true;
+                if (!alarm.isAbove && currentPrice <= alarm.target) triggered = true;
+
+                if (triggered) {
+                    alarm.active = false; // Mark as triggered
+                    localStorage.setItem('alarms', JSON.stringify(state.alarms));
+                    
+                    // Show Notification
+                    showToast(`🚨 ALARM: ${alarm.code} hedef fiyatına ulaştı! Mevcut: ${currentPrice.toFixed(4)} ₺`, 'warning');
+                    
+                    // Push to notifications
+                    state.notifications.unshift({
+                        id: Date.now(),
+                        text: `${alarm.code} fiyatı ${alarm.target.toFixed(4)} hedefine ulaştı.`,
+                        time: 'Az önce',
+                        read: false
+                    });
+                }
+            });
+        }
+
+        function setAlarm(code) {
+            const currentPrice = state.currencies[code] ? state.currencies[code].buy : (state.metals[code] ? state.metals[code].buy : (state.crypto[code] ? state.crypto[code].buy : 0));
+            const targetPrice = prompt(`${code} için hedef kur fiyatını girin (Mevcut: ${currentPrice.toFixed(4)})`, currentPrice.toFixed(4));
+            
+            if (targetPrice && !isNaN(targetPrice)) {
+                const target = parseFloat(targetPrice);
+                const isAbove = target > currentPrice;
+                
+                state.alerts.push({
+                    id: Date.now(),
+                    code: code,
+                    target: target,
+                    isAbove: isAbove,
+                    active: true
+                });
+                
+                localStorage.setItem('alerts', JSON.stringify(state.alerts));
+                showToast(`${code} için ${target.toFixed(4)} seviyesinde alarm kuruldu! 🔔`, 'success');
+            }
+        }
+
+        function checkAlarms() {
+            state.alerts.forEach(alarm => {
+                if (!alarm.active) return;
+                
+                const currentPrice = state.currencies[alarm.code] ? state.currencies[alarm.code].buy : (state.metals[alarm.code] ? state.metals[alarm.code].buy : (state.crypto[alarm.code] ? state.crypto[alarm.code].buy : 0));
+                if (currentPrice === 0) return;
+
+                let triggered = false;
+                if (alarm.isAbove && currentPrice >= alarm.target) triggered = true;
+                if (!alarm.isAbove && currentPrice <= alarm.target) triggered = true;
+
+                if (triggered) {
+                    alarm.active = false;
+                    localStorage.setItem('alerts', JSON.stringify(state.alerts));
+                    
+                    showToast(`🚨 ALARM: ${alarm.code} hedef fiyatına ulaştı! Mevcut: ${currentPrice.toFixed(4)} ₺`, 'warning');
+                    
+                    state.notifications.unshift({
+                        id: Date.now(),
+                        text: `${alarm.code} fiyatı ${alarm.target.toFixed(4)} hedefine ulaştı.`,
+                        time: 'Az önce',
+                        read: false
+                    });
+                }
+            });
         }
 
         function closeModal() {
