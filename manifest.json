@@ -1,0 +1,21 @@
+{
+  "name": "Dövizim - Profesyonel Döviz Borsası",
+  "short_name": "Dövizim",
+  "description": "Canlı döviz, altın ve kripto kurlarını takip edin, kişisel portföyünüzü yönetin.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJMMiAxMmgydjhhaDIgMiAwIDAgMCAyIDJoOGEy 0=",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJMMiAxMmgydjhhaDIgMiAwIDAgMCAyIDJoOGEy 0=",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
