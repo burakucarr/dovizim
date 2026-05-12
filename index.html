@@ -3622,59 +3622,7 @@
             }
         }
 
-        function generateAIResponse(text) {
-            const lowerText = text.toLowerCase();
-            
-            if (lowerText.match(/(altın|xau|gram|ons)/)) {
-                const responses = [
-                    "Şu an global jeopolitik riskler sebebiyle Altın'a talep yüksek. FED'in faiz adımlarını yakından izlemelisiniz.",
-                    "Altın her zaman güvenli liman olarak görülür. Özellikle enflasyon beklentilerinin yüksek olduğu dönemlerde portföyde mutlaka bir miktar fiziki veya dijital altın bulundurmak mantıklı olabilir.",
-                    "Teknik analize göre ons altın tarafında destek seviyeleri güçlü. Orta-uzun vadeli yatırım için kademeli alım stratejisi uygulayabilirsiniz."
-                ];
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-            
-            if (lowerText.match(/(dolar|usd|kur|euro|eur)/)) {
-                const responses = [
-                    "Döviz piyasası iç piyasa dinamiklerine çok bağlı. Eğer ödemeleriniz döviz cinsinden değilse, yatırımı sadece dövizde tutmak yerine farklı enstrümanlarla desteklemek enflasyona karşı daha iyi koruma sağlayabilir.",
-                    "Euro/Dolar paritesi şu aralar Avrupa Merkez Bankası kararları ekseninde şekilleniyor. Sepetinizde sadece USD yerine %50 EUR, %50 USD tutarak parite riskini azaltabilirsiniz.",
-                    "Kısa vadeli kur tahminleri oldukça zordur. Sabit getiri arıyorsanız, mevduat veya kur korumalı enstrümanlarla dövizin fırsat maliyetini kıyaslamanızı öneririm."
-                ];
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-            
-            if (lowerText.match(/(kripto|btc|bitcoin|eth|coin)/)) {
-                const responses = [
-                    "Kripto paralar aşırı volatildir. Portföyünüzün %10'undan fazlasını bu alana ayırmamak genellikle 'altın kural' olarak kabul edilir.",
-                    "Bitcoin son günlerde önemli bir direnç seviyesini test ediyor. Eğer ETF haberleri ve regülasyonlar pozitif devam ederse yükseliş sürebilir ancak stop-loss kullanmayı ihmal etmeyin.",
-                    "Altcoinlerde işlem yapmadan önce projelerin teknolojisini ve piyasa hacimlerini dikkatle araştırmalısınız. Sadece 'duyumlar' üzerinden işlem yapmaktan kesinlikle kaçının."
-                ];
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-            
-            if (lowerText.match(/(10000|10\.000|ne yapmalıyım|tavsiye|para|yatırım)/)) {
-                const responses = [
-                    "Böylesi volatil günlerde sermayeyi korumak için %40 Altın (Güvenli Liman), %40 Döviz (USD/EUR) ve risk iştahınıza göre %20 oranında hisse senedi veya kripto içeren bir sepet yapmayı değerlendirebilirsiniz.",
-                    "Yatırım yaparken en önemli kural 'tüm yumurtaları aynı sepete koymamaktır'. Elinizdeki nakdi 3'e bölerek farklı zamanlarda ve farklı araçlara kademeli yatırım yapmayı düşünün.",
-                    "Tavsiye isterseniz; yatırım ufkunuz uzun ise endeks fonlarına ve değerli metallere ağırlık vermek tarihsel olarak stresi en düşük yöntemlerden biridir."
-                ];
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-
-            if (lowerText.match(/(selam|merhaba|naber|nasılsın)/)) {
-                return "Merhaba! Piyasa analizleri, döviz tahminleri veya portföy dağılımı konusunda size nasıl yardımcı olabilirim?";
-            }
-
-            const fallbacks = [
-                "Piyasalardaki dalgalanmaları dikkate alarak sepetinizi çeşitlendirmenizi öneririm.",
-                "Bu konu makroekonomik gelişmelere oldukça bağlı. Karar vermeden önce açıklanacak enflasyon ve faiz verilerini beklemekte fayda var.",
-                "Yatırım dünyasında her zaman bir fırsat vardır. Ancak risk toleransınızı iyi belirleyip ona göre bir strateji çizmeniz çok önemlidir.",
-                "Dövizim platformundaki 'Portföy' sekmesinden grafiksel analizlerinizi takip edebilir, yatırımlarınızı buradaki veriler ışığında yönlendirebilirsiniz."
-            ];
-            return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-        }
-
-        function sendAIMsg() {
+        async function sendAIMsg() {
             const input = document.getElementById('ai-input');
             const text = input.value.trim();
             if (!text) return;
@@ -3691,15 +3639,54 @@
             msgs.innerHTML += `<div class="ai-msg system" id="${typingId}">Analiz ediliyor...</div>`;
             msgs.scrollTop = msgs.scrollHeight;
 
-            setTimeout(() => {
+            try {
+                const apiKey = window.ENV.GEMINI_API_KEY;
+                if (!apiKey || apiKey === '') {
+                    throw new Error('API_KEY_MISSING');
+                }
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Sen 'Dövizim' adlı bir finans uygulamasının yapay zeka asistanısın. Kullanıcıya finansal piyasalar, döviz, altın ve yatırım konularında kısa, profesyonel ve öz bir dille cevap ver. Asla çok uzun paragraflar yazma. Kullanıcının sorusu: "${text}"`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                let aiText = "Üzgünüm, şu an yanıt veremiyorum.";
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    aiText = data.candidates[0].content.parts[0].text;
+                }
+
+                // Remove typing indicator
                 const typingEl = document.getElementById(typingId);
                 if (typingEl) typingEl.remove();
 
-                const response = generateAIResponse(text);
-
-                msgs.innerHTML += `<div class="ai-msg system">${response}</div>`;
+                // Format markdown bold/italic basic to HTML
+                aiText = aiText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                aiText = aiText.replace(/\n/g, '<br>');
+                
+                msgs.innerHTML += `<div class="ai-msg system">${aiText}</div>`;
                 msgs.scrollTop = msgs.scrollHeight;
-            }, 1500);
+
+            } catch (error) {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+
+                let errorMsg = "Bağlantı hatası oluştu. Lütfen tekrar deneyin.";
+                if (error.message === 'API_KEY_MISSING') {
+                    errorMsg = "Lütfen env.js dosyasına geçerli bir GEMINI_API_KEY ekleyin.";
+                }
+
+                msgs.innerHTML += `<div class="ai-msg system" style="color: var(--danger);">${errorMsg}</div>`;
+                msgs.scrollTop = msgs.scrollHeight;
+            }
         }
     </script>
 </body>
