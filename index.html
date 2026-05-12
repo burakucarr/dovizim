@@ -3622,6 +3622,58 @@
             }
         }
 
+        function generateAIResponse(text) {
+            const lowerText = text.toLowerCase();
+            
+            if (lowerText.match(/(altın|xau|gram|ons)/)) {
+                const responses = [
+                    "Şu an global jeopolitik riskler sebebiyle Altın'a talep yüksek. FED'in faiz adımlarını yakından izlemelisiniz.",
+                    "Altın her zaman güvenli liman olarak görülür. Özellikle enflasyon beklentilerinin yüksek olduğu dönemlerde portföyde mutlaka bir miktar fiziki veya dijital altın bulundurmak mantıklı olabilir.",
+                    "Teknik analize göre ons altın tarafında destek seviyeleri güçlü. Orta-uzun vadeli yatırım için kademeli alım stratejisi uygulayabilirsiniz."
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            if (lowerText.match(/(dolar|usd|kur|euro|eur)/)) {
+                const responses = [
+                    "Döviz piyasası iç piyasa dinamiklerine çok bağlı. Eğer ödemeleriniz döviz cinsinden değilse, yatırımı sadece dövizde tutmak yerine farklı enstrümanlarla desteklemek enflasyona karşı daha iyi koruma sağlayabilir.",
+                    "Euro/Dolar paritesi şu aralar Avrupa Merkez Bankası kararları ekseninde şekilleniyor. Sepetinizde sadece USD yerine %50 EUR, %50 USD tutarak parite riskini azaltabilirsiniz.",
+                    "Kısa vadeli kur tahminleri oldukça zordur. Sabit getiri arıyorsanız, mevduat veya kur korumalı enstrümanlarla dövizin fırsat maliyetini kıyaslamanızı öneririm."
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            if (lowerText.match(/(kripto|btc|bitcoin|eth|coin)/)) {
+                const responses = [
+                    "Kripto paralar aşırı volatildir. Portföyünüzün %10'undan fazlasını bu alana ayırmamak genellikle 'altın kural' olarak kabul edilir.",
+                    "Bitcoin son günlerde önemli bir direnç seviyesini test ediyor. Eğer ETF haberleri ve regülasyonlar pozitif devam ederse yükseliş sürebilir ancak stop-loss kullanmayı ihmal etmeyin.",
+                    "Altcoinlerde işlem yapmadan önce projelerin teknolojisini ve piyasa hacimlerini dikkatle araştırmalısınız. Sadece 'duyumlar' üzerinden işlem yapmaktan kesinlikle kaçının."
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            if (lowerText.match(/(10000|10\.000|ne yapmalıyım|tavsiye|para|yatırım)/)) {
+                const responses = [
+                    "Böylesi volatil günlerde sermayeyi korumak için %40 Altın (Güvenli Liman), %40 Döviz (USD/EUR) ve risk iştahınıza göre %20 oranında hisse senedi veya kripto içeren bir sepet yapmayı değerlendirebilirsiniz.",
+                    "Yatırım yaparken en önemli kural 'tüm yumurtaları aynı sepete koymamaktır'. Elinizdeki nakdi 3'e bölerek farklı zamanlarda ve farklı araçlara kademeli yatırım yapmayı düşünün.",
+                    "Tavsiye isterseniz; yatırım ufkunuz uzun ise endeks fonlarına ve değerli metallere ağırlık vermek tarihsel olarak stresi en düşük yöntemlerden biridir."
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            if (lowerText.match(/(selam|merhaba|naber|nasılsın)/)) {
+                return "Merhaba! Piyasa analizleri, döviz tahminleri veya portföy dağılımı konusunda size nasıl yardımcı olabilirim?";
+            }
+
+            const fallbacks = [
+                "Piyasalardaki dalgalanmaları dikkate alarak sepetinizi çeşitlendirmenizi öneririm.",
+                "Bu konu makroekonomik gelişmelere oldukça bağlı. Karar vermeden önce açıklanacak enflasyon ve faiz verilerini beklemekte fayda var.",
+                "Yatırım dünyasında her zaman bir fırsat vardır. Ancak risk toleransınızı iyi belirleyip ona göre bir strateji çizmeniz çok önemlidir.",
+                "Dövizim platformundaki 'Portföy' sekmesinden grafiksel analizlerinizi takip edebilir, yatırımlarınızı buradaki veriler ışığında yönlendirebilirsiniz."
+            ];
+            return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        }
+
         function sendAIMsg() {
             const input = document.getElementById('ai-input');
             const text = input.value.trim();
@@ -3643,18 +3695,7 @@
                 const typingEl = document.getElementById(typingId);
                 if (typingEl) typingEl.remove();
 
-                let response = "Piyasalardaki dalgalanmaları dikkate alarak sepetinizi çeşitlendirmenizi öneririm.";
-                const lowerText = text.toLowerCase();
-
-                if (lowerText.includes('10000') || lowerText.includes('10.000') || lowerText.includes('tavsiye')) {
-                    response = "Böylesi volatil günlerde 10.000 TL'lik bir sermayeyi korumak için %40 Altın (Güvenli Liman), %40 Döviz (USD/EUR) ve risk iştahınıza göre %20 oranında Kripto veya Gümüş sepeti yapmayı değerlendirebilirsiniz.";
-                } else if (lowerText.includes('altın') || lowerText.includes('xau')) {
-                    response = "Şu an global jeopolitik riskler sebebiyle Altın'a talep yüksek. Merkez bankası kararlarını takip ederseniz yükseliş trendi kısa vadede korunabilir.";
-                } else if (lowerText.includes('dolar') || lowerText.includes('usd')) {
-                    response = "Dolar kuru iç piyasa dengelerine ve FED'in faiz politikalarına sıkı sıkıya bağlıdır. Mevcut veriler yatay bir seyir izleyeceğine işaret ediyor.";
-                } else if (lowerText.includes('kripto') || lowerText.includes('btc') || lowerText.includes('bitcoin')) {
-                    response = "Kripto piyasalarında çok yüksek volatilite var. ETF haberleri olumlu yansısa da anlık düşüşlere hazırlıklı olun.";
-                }
+                const response = generateAIResponse(text);
 
                 msgs.innerHTML += `<div class="ai-msg system">${response}</div>`;
                 msgs.scrollTop = msgs.scrollHeight;
